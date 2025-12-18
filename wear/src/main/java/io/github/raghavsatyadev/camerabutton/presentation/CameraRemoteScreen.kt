@@ -92,7 +92,7 @@ fun CameraRemoteContent(
         modifier = Modifier.weight(1f).fillMaxWidth(),
         state = rememberScalingLazyListState(),
       ) {
-        items(ShutterKey.values()) { key ->
+        items(ShutterKey.entries) { key ->
           Button(
             onClick = { onTrigger(key) },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp),
@@ -115,7 +115,10 @@ fun CameraRemoteContent(
           )
         }
         item {
-          Button(onClick = onRefreshDevices, modifier = Modifier.padding(top = 4.dp)) {
+          Button(
+            onClick = onRefreshDevices,
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+          ) {
             Text("Refresh")
           }
         }
