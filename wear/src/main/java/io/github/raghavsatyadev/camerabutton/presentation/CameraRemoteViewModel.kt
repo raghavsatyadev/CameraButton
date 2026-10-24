@@ -156,7 +156,7 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
           val pressReport = ByteArray(8)
           pressReport[2] = 0x28 // Key Code for Enter
           hidDevice?.sendReport(device, Descriptor.ID_KEYBOARD, pressReport)
-          delay(50)
+          delay(KEY_HOLD_MS)
           // Release
           val releaseReport = ByteArray(8)
           hidDevice?.sendReport(device, Descriptor.ID_KEYBOARD, releaseReport)
@@ -167,7 +167,7 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
           val pressReport = ByteArray(8)
           pressReport[2] = 0x2C // Key Code for Space
           hidDevice?.sendReport(device, Descriptor.ID_KEYBOARD, pressReport)
-          delay(50)
+          delay(KEY_HOLD_MS)
           // Release
           val releaseReport = ByteArray(8)
           hidDevice?.sendReport(device, Descriptor.ID_KEYBOARD, releaseReport)
@@ -178,7 +178,7 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
           // Enum ordinals: VOLUME_UP=0, VOLUME_DOWN=1.
           val reportByte = (1 shl key.ordinal).toByte()
           hidDevice?.sendReport(device, Descriptor.ID_CONSUMER_CONTROL, byteArrayOf(reportByte))
-          delay(50)
+          delay(KEY_HOLD_MS)
           hidDevice?.sendReport(device, Descriptor.ID_CONSUMER_CONTROL, byteArrayOf(0x00))
         }
       }
@@ -201,6 +201,8 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
 }
 
 private const val QUICK_DROP_MS = 2_000L
+// Short taps can arrive ~3 ms apart over Bluetooth; some camera apps ignore them.
+private const val KEY_HOLD_MS = 150L
 
 enum class ShutterKey {
   VOLUME_UP,
