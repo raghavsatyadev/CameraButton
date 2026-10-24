@@ -1,8 +1,10 @@
 # CameraButton
 
 A Wear OS app that turns your watch into a Bluetooth camera shutter for your phone. The watch
-pairs as a Bluetooth keyboard and remote, so it works with the phone's own camera app. Nothing
-needs to be installed on the phone.
+pairs as a Bluetooth keyboard and remote and presses the shutter in the phone's own camera app.
+
+**No companion app needed.** Nothing is installed on the phone, and you keep its camera's full
+quality and features.
 
 <p align="center">
   <img src="docs/remote.png" width="200" alt="Remote screen">
