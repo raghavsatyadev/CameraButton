@@ -29,6 +29,14 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
 
   private var hidDevice: BluetoothHidDevice? = null
   private var hostDevice: BluetoothDevice? = null
+  private var connectedAtMs = 0L
+
+  private val _registered = MutableStateFlow(false)
+  val registered = _registered.asStateFlow()
+
+  /** True when the phone dropped the HID link right after accepting it (it doesn't treat the watch as an input device). */
+  private val _rejectedByHost = MutableStateFlow(false)
+  val rejectedByHost = _rejectedByHost.asStateFlow()
 
   private val _connectionState = MutableStateFlow("Disconnected")
   val connectionState = _connectionState.asStateFlow()
@@ -41,12 +49,7 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
       override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
         super.onAppStatusChanged(pluggedDevice, registered)
         Log.d(TAG, "onAppStatusChanged: registered=$registered")
-        if (registered) {
-          // Determine initial connection state if pluggedDevice is available
-          if (pluggedDevice != null) {
-            // It seems we might be connected
-          }
-        }
+        _registered.value = registered
       }
 
       override fun onConnectionStateChanged(device: BluetoothDevice?, state: Int) {
@@ -56,12 +59,19 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
           when (state) {
             BluetoothProfile.STATE_CONNECTED -> {
               hostDevice = device
+              connectedAtMs = System.currentTimeMillis()
+              _rejectedByHost.value = false
               "Connected"
             }
             BluetoothProfile.STATE_CONNECTING -> "Connecting"
             BluetoothProfile.STATE_DISCONNECTING -> "Disconnecting"
             BluetoothProfile.STATE_DISCONNECTED -> {
-              if (device == hostDevice) hostDevice = null
+              if (device == hostDevice) {
+                hostDevice = null
+                if (System.currentTimeMillis() - connectedAtMs < QUICK_DROP_MS) {
+                  _rejectedByHost.value = true
+                }
+              }
               "Disconnected"
             }
             else -> "Unknown"
@@ -84,6 +94,7 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
         if (profile == BluetoothProfile.HID_DEVICE) {
           Log.d(TAG, "HID Device Proxy Disconnected")
           hidDevice = null
+          _registered.value = false
         }
       }
     }
@@ -102,6 +113,14 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
     _pairedDevices.value = bluetoothAdapter?.bondedDevices?.toList() ?: emptyList()
   }
 
+  /**
+   * The system only accepts HID registration while the app is in the foreground, so call this from
+   * onResume. It is a no-op when already registered or before the profile proxy is ready.
+   */
+  fun ensureRegistered() {
+    if (hidDevice != null && !_registered.value) registerHidApp()
+  }
+
   @SuppressLint("MissingPermission")
   private fun registerHidApp() {
     val sdpSettings =
@@ -113,12 +132,14 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
         Descriptor.BYTES,
       )
 
-    hidDevice?.registerApp(sdpSettings, null, null, executor, callback)
+    val accepted = hidDevice?.registerApp(sdpSettings, null, null, executor, callback) ?: false
+    Log.d(TAG, "registerApp accepted=$accepted")
   }
 
   @SuppressLint("MissingPermission")
   fun connectToDevice(device: BluetoothDevice) {
     Log.d(TAG, "Connecting to ${device.name}")
+    _rejectedByHost.value = false
     hidDevice?.connect(device)
   }
 
@@ -178,6 +199,8 @@ class CameraRemoteViewModel(application: Application) : AndroidViewModel(applica
     }
   }
 }
+
+private const val QUICK_DROP_MS = 2_000L
 
 enum class ShutterKey {
   VOLUME_UP,
