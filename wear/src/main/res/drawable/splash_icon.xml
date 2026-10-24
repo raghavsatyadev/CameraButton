@@ -1,14 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Outer bezel -->
     <path
-        android:fillColor="#FFFFB68A"
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.35"
         android:fillType="evenOdd"
-        android:pathData="M29,54a25,25 0,1 1,50,0a25,25 0,1 1,-50,0zM35,54a19,19 0,1 1,38,0a19,19 0,1 1,-38,0z" />
+        android:pathData="M25.0,54a29.0,29.0 0,1 1,58.0,0a29.0,29.0 0,1 1,-58.0,0zM27.4,54a26.6,26.6 0,1 1,53.2,0a26.6,26.6 0,1 1,-53.2,0z" />
+    <!-- Six aperture blades around an open hexagon -->
     <path
-        android:fillColor="#FFFFB68A"
-        android:pathData="M41,54a13,13 0,1 1,26,0a13,13 0,1 1,-26,0z" />
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1.0"
+        android:strokeColor="#FF24105C"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round"
+        android:pathData="M56.46,44.82 L63.18,51.54 L76.51,64.88 A25.0,25.0 0 0,0 74.67,39.94 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.9"
+        android:strokeColor="#FF24105C"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round"
+        android:pathData="M63.18,51.54 L60.72,60.72 L55.84,78.93 A25.0,25.0 0 0,0 76.51,64.88 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.8"
+        android:strokeColor="#FF24105C"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round"
+        android:pathData="M60.72,60.72 L51.54,63.18 L33.33,68.06 A25.0,25.0 0 0,0 55.84,78.93 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.7"
+        android:strokeColor="#FF24105C"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round"
+        android:pathData="M51.54,63.18 L44.82,56.46 L31.49,43.12 A25.0,25.0 0 0,0 33.33,68.06 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.8"
+        android:strokeColor="#FF24105C"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round"
+        android:pathData="M44.82,56.46 L47.28,47.28 L52.16,29.07 A25.0,25.0 0 0,0 31.49,43.12 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.9"
+        android:strokeColor="#FF24105C"
+        android:strokeWidth="0.9"
+        android:strokeLineJoin="round"
+        android:pathData="M47.28,47.28 L56.46,44.82 L74.67,39.94 A25.0,25.0 0 0,0 52.16,29.07 Z" />
+    <!-- Glowing lens core -->
+    <path android:pathData="M56.46,44.82 L63.18,51.54 L60.72,60.72 L51.54,63.18 L44.82,56.46 L47.28,47.28Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54" android:centerY="54"
+                android:gradientRadius="9.5">
+                <item android:offset="0" android:color="#FFFFC266" />
+                <item android:offset="1" android:color="#FFFF4F6D" />
+            </gradient>
+        </aapt:attr>
+    </path>
 </vector>

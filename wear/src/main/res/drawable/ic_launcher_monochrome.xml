@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer bezel -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:fillType="evenOdd"
+        android:pathData="M25.0,54a29.0,29.0 0,1 1,58.0,0a29.0,29.0 0,1 1,-58.0,0zM27.4,54a26.6,26.6 0,1 1,53.2,0a26.6,26.6 0,1 1,-53.2,0z" />
+    <!-- Six aperture blades around an open hexagon -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:pathData="M56.46,44.82 L63.18,51.54 L76.51,64.88 A25.0,25.0 0 0,0 74.67,39.94 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:pathData="M63.18,51.54 L60.72,60.72 L55.84,78.93 A25.0,25.0 0 0,0 76.51,64.88 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:pathData="M60.72,60.72 L51.54,63.18 L33.33,68.06 A25.0,25.0 0 0,0 55.84,78.93 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:pathData="M51.54,63.18 L44.82,56.46 L31.49,43.12 A25.0,25.0 0 0,0 33.33,68.06 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:pathData="M44.82,56.46 L47.28,47.28 L52.16,29.07 A25.0,25.0 0 0,0 31.49,43.12 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="1"
+        android:pathData="M47.28,47.28 L56.46,44.82 L74.67,39.94 A25.0,25.0 0 0,0 52.16,29.07 Z" />
+</vector>
