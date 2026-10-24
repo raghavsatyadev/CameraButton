@@ -1,7 +1,14 @@
+import java.util.Properties
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
 }
+
+val secretProps =
+  Properties().apply {
+    rootProject.file("secret.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+  }
 
 android {
   namespace = "io.github.raghavsatyadev.camerabutton"
@@ -15,8 +22,18 @@ android {
     versionName = "1.0"
   }
 
+  signingConfigs {
+    create("release") {
+      secretProps.getProperty("storeFile")?.let { storeFile = rootProject.file("wear/$it") }
+      storePassword = secretProps.getProperty("storePassword")
+      keyAlias = secretProps.getProperty("keyAlias")
+      keyPassword = secretProps.getProperty("keyPassword")
+    }
+  }
+
   buildTypes {
     release {
+      signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
