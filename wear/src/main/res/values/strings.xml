@@ -1,8 +1,65 @@
 <resources>
-    <string name="app_name">CameraButton</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">From the Square world,\nHello, %1$s!</string>
+    <string name="app_name">Camera Button</string>
+
+    <!-- How the watch introduces itself to the phone over Bluetooth -->
+    <string name="hid_name">Camera Button</string>
+    <string name="hid_description">Wear OS camera shutter remote</string>
+    <string name="hid_provider">Camera Button</string>
+
+    <!-- Shutter keys -->
+    <string name="key_volume_up">Volume up</string>
+    <string name="key_volume_up_hint">Works with most camera apps</string>
+    <string name="key_volume_down">Volume down</string>
+    <string name="key_volume_down_hint">If volume up zooms instead</string>
+    <string name="key_enter">Enter</string>
+    <string name="key_enter_hint">For apps that ignore volume keys</string>
+    <string name="key_space">Space</string>
+    <string name="key_space_hint">Some video and PC apps</string>
+
+    <!-- Remote screen -->
+    <string name="take_photo">Take photo</string>
+    <string name="settings">Settings</string>
+    <string name="timer_off">Timer off</string>
+    <string name="timer_short">%1$ds</string>
+    <string name="timer_seconds">%1$d seconds</string>
+    <string name="status_connecting">Connecting to %1$s</string>
+    <string name="status_starting">Starting…</string>
+    <string name="status_choose_phone">Connect</string>
+
+    <!-- Devices screen -->
+    <string name="devices_title">Phones</string>
+    <string name="devices_empty">No paired phones yet. Tap Pair to add one.</string>
+    <string name="pairing_guide">On your phone, open Bluetooth settings and pair with this watch. Then tap it here.</string>
+    <string name="pair_new_phone">Pair</string>
+    <string name="host_connected">Connected</string>
+    <string name="host_connecting">Connecting…</string>
+    <string name="host_paired">Tap to connect</string>
+    <string name="error_connect">Couldn\'t connect</string>
+    <string name="error_rejected">Phone refused. Re-pair watch</string>
+
+    <!-- Settings screen -->
+    <string name="settings_shutter_key">Shutter key</string>
+    <string name="settings_timer">Self-timer</string>
+    <string name="settings_screen">Screen</string>
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_keep_screen_on_hint">While connected to a phone</string>
+
+    <!-- Status screen -->
+    <string name="status_permission_title">Allow Bluetooth</string>
+    <string name="status_permission_body">Camera Button needs nearby devices access to act as a remote for your phone.</string>
+    <string name="status_off_title">Bluetooth is off</string>
+    <string name="status_off_body">Turn on Bluetooth to connect to your phone.</string>
+    <string name="status_busy_title">Remote in use</string>
+    <string name="status_busy_body">Another app is using the watch as a Bluetooth keyboard or remote. Close it and try again.</string>
+    <string name="status_unsupported_title">Not supported</string>
+    <string name="status_unsupported_body">This watch doesn\'t let apps act as a Bluetooth remote.</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_turn_on">Turn on</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_disconnect">Disconnect</string>
+
+    <!-- Foreground service notification -->
+    <string name="channel_name">Remote connection</string>
+    <string name="notification_title">Camera remote connected</string>
+    <string name="notification_text">Connected to %1$s</string>
 </resources>

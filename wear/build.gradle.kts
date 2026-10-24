@@ -12,14 +12,14 @@ val secretProps =
 
 android {
   namespace = "io.github.raghavsatyadev.camerabutton"
-  compileSdk { version = release(36) }
+  compileSdk { version = release(37) }
 
   defaultConfig {
     applicationId = "io.github.raghavsatyadev.camerabutton"
     minSdk = 30
-    targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    targetSdk = 37
+    versionCode = 2
+    versionName = "2.0.0"
   }
 
   signingConfigs {
@@ -34,31 +34,38 @@ android {
   buildTypes {
     release {
       signingConfig = signingConfigs.getByName("release")
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
   }
-  useLibrary("wear-sdk")
   buildFeatures { compose = true }
 }
 
+kotlin { jvmToolchain(21) }
+
 dependencies {
-  implementation(libs.play.services.wearable)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.ui)
-  implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
-  implementation(libs.androidx.compose.material)
-  implementation(libs.androidx.compose.foundation)
+  implementation(libs.androidx.wear.compose.material3)
+  implementation(libs.androidx.wear.compose.foundation)
+  implementation(libs.androidx.wear.compose.navigation3)
+  implementation(libs.androidx.navigation3.runtime)
+  implementation(libs.androidx.navigation3.ui)
+  implementation(libs.androidx.wear.compose.ui.tooling)
   implementation(libs.androidx.wear.tooling.preview)
   implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.lifecycle.viewmodel.compose)
+  implementation(libs.androidx.lifecycle.runtime.compose)
+  implementation(libs.androidx.lifecycle.service)
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.core.splashscreen)
-  androidTestImplementation(platform(libs.androidx.compose.bom))
-  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+  implementation(libs.androidx.datastore.preferences)
+  testImplementation(libs.junit)
   debugImplementation(libs.androidx.compose.ui.tooling)
-  debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
