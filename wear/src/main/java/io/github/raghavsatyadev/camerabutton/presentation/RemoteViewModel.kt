@@ -89,5 +89,9 @@ class RemoteViewModel(application: Application) : AndroidViewModel(application) 
 
   fun disconnect() = remote.disconnect()
 
+  fun unpair(address: String): Boolean = remote.unpair(address)
+
+  fun startPairing(seconds: Int) = remote.startPairing(seconds)
+
   fun refresh() = remote.refresh()
 }

@@ -36,6 +36,10 @@ class SettingsRepository(context: Context) {
 
   suspend fun setLastHost(address: String) = store.edit { it[LAST_HOST] = address }
 
+  /** Forgets the last phone if it was [address]. */
+  suspend fun clearLastHost(address: String) =
+    store.edit { if (it[LAST_HOST] == address) it.remove(LAST_HOST) }
+
   private fun Preferences.toSettings() =
     Settings(
       shutterKey = this[SHUTTER_KEY]?.let { name -> ShutterKey.entries.firstOrNull { it.name == name } }

@@ -29,13 +29,16 @@
     <!-- Devices screen -->
     <string name="devices_title">Phones</string>
     <string name="devices_empty">No paired phones yet. Tap Pair to add one.</string>
-    <string name="pairing_guide">On your phone, open Bluetooth settings and pair with this watch. Then tap it here.</string>
+    <string name="pairing_guide">On your phone, open Bluetooth settings and pair with this watch. It connects on its own.</string>
     <string name="pair_new_phone">Pair</string>
     <string name="host_connected">Connected</string>
     <string name="host_connecting">Connecting…</string>
     <string name="host_paired">Tap to connect</string>
     <string name="error_connect">Couldn\'t connect</string>
     <string name="error_rejected">Phone refused. Re-pair watch</string>
+    <string name="unpair_hint">Hold a phone to unpair it</string>
+    <string name="unpair_title">Unpair %1$s?</string>
+    <string name="unpair_body">The phone will need to pair with this watch again to use the remote.</string>
 
     <!-- Settings screen -->
     <string name="settings_shutter_key">Shutter key</string>
@@ -57,6 +60,7 @@
     <string name="action_turn_on">Turn on</string>
     <string name="action_retry">Retry</string>
     <string name="action_disconnect">Disconnect</string>
+    <string name="action_unpair">Unpair</string>
 
     <!-- Foreground service notification -->
     <string name="channel_name">Remote connection</string>

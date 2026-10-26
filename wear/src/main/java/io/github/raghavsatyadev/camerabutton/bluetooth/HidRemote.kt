@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import io.github.raghavsatyadev.camerabutton.R
 import io.github.raghavsatyadev.camerabutton.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -70,11 +71,32 @@ class HidRemote(
   private var connectTimeout: Job? = null
   private var connectedAtMs = 0L
 
+  /** True while an automatic reconnect runs; its failure is not worth an error dialog. */
+  private var quietConnect = false
+
+  /** While the watch is discoverable, stay registered so a pairing phone sees the remote. */
+  private var pairingUntilMs = 0L
+
+  /** A phone that paired while the remote was not registered; connect to it next. */
+  private var newlyBonded: String? = null
+
   private val systemReceiver =
     object : BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
-          BluetoothDevice.ACTION_BOND_STATE_CHANGED -> refreshHosts()
+          BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
+            refreshHosts()
+            val bonded =
+              intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE) ==
+                BluetoothDevice.BOND_BONDED
+            val device =
+              IntentCompat.getParcelableExtra(
+                intent,
+                BluetoothDevice.EXTRA_DEVICE,
+                BluetoothDevice::class.java,
+              )
+            if (bonded && device != null) onBonded(device)
+          }
           BluetoothAdapter.ACTION_STATE_CHANGED ->
             when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
               BluetoothAdapter.STATE_ON -> if (uiVisible) refresh()
@@ -95,7 +117,9 @@ class HidRemote(
         addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
         addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
       }
-    ContextCompat.registerReceiver(app, systemReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+    // Bluetooth broadcasts come from the Bluetooth app, not the system, so a non-exported receiver
+    // never gets them. Both actions are protected broadcasts, so other apps can't fake them.
+    ContextCompat.registerReceiver(app, systemReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
   }
 
   /** The UI calls this from onStart/onStop; it decides whether the remote should be registered. */
@@ -117,16 +141,29 @@ class HidRemote(
     refreshHosts()
   }
 
-  fun connect(address: String) {
+  /** The watch is discoverable for [seconds]; keep the remote ready for a new phone until then. */
+  fun startPairing(seconds: Int) {
+    pairingUntilMs = SystemClock.elapsedRealtime() + seconds * 1_000L
+    scope.launch {
+      delay(seconds * 1_000L)
+      releaseIfIdle()
+    }
+  }
+
+  private fun isPairing() = SystemClock.elapsedRealtime() < pairingUntilMs
+
+  /** Connects to [address]. A [quiet] attempt fails without telling the user. */
+  fun connect(address: String, quiet: Boolean = false) {
     val device = hid ?: return
     val bt = adapter ?: return
     if (!registered || !hasConnectPermission()) return
+    quietConnect = quiet
     val target = bt.getRemoteDevice(address)
     device.connectedDevices.filter { it.address != address }.forEach { device.disconnect(it) }
     _state.value = RemoteState.Connecting(target.toHost())
     if (!device.connect(target)) {
       _state.value = RemoteState.Ready
-      _messages.tryEmit(R.string.error_connect)
+      if (!quiet) _messages.tryEmit(R.string.error_connect)
       return
     }
     connectTimeout?.cancel()
@@ -135,7 +172,7 @@ class HidRemote(
         delay(CONNECT_TIMEOUT_MS)
         if (_state.value is RemoteState.Connecting) {
           _state.value = RemoteState.Ready
-          _messages.tryEmit(R.string.error_connect)
+          if (!quiet) _messages.tryEmit(R.string.error_connect)
         }
       }
   }
@@ -144,6 +181,26 @@ class HidRemote(
     val device = hid ?: return
     if (!hasConnectPermission()) return
     device.connectedDevices.forEach { device.disconnect(it) }
+  }
+
+  /**
+   * Forgets the pairing with [address] so the phone has to pair again. Android keeps this call
+   * from ordinary apps on some watches; it returns false then and the caller sends the user to the
+   * system Bluetooth settings.
+   */
+  fun unpair(address: String): Boolean {
+    val bt = adapter ?: return false
+    if (!hasConnectPermission()) return false
+    val target = bt.getRemoteDevice(address)
+    hid?.takeIf { target in it.connectedDevices }?.disconnect(target)
+    scope.launch { settings.clearLastHost(address) }
+    val removed =
+      runCatching { target.javaClass.getMethod("removeBond").invoke(target) as Boolean }
+        .onFailure { Log.w(TAG, "removeBond is not available", it) }
+        .getOrDefault(false)
+    Log.i(TAG, "unpair $address removed=$removed")
+    refreshHosts()
+    return removed
   }
 
   /** Presses and releases [key] on the connected phone. Returns false if nothing was sent. */
@@ -208,12 +265,34 @@ class HidRemote(
     if (_state.value !is RemoteState.Connecting) _state.value = RemoteState.Ready
     scope.launch {
       val bt = adapter ?: return@launch
-      val target =
-        plugged
-          ?: settings.current().lastHostAddress?.let { bt.getRemoteDevice(it) }?.takeIf {
+      val fresh = newlyBonded?.let { bt.getRemoteDevice(it) }
+      newlyBonded = null
+      // While pairing, don't keep the radio busy calling an old phone that may not be around.
+      val last =
+        if (isPairing()) null
+        else
+          settings.current().lastHostAddress?.let { bt.getRemoteDevice(it) }?.takeIf {
             it.bondState == BluetoothDevice.BOND_BONDED
           }
-      if (target != null && _state.value == RemoteState.Ready) connect(target.address)
+      val target = plugged ?: fresh ?: last
+      if (target != null && _state.value == RemoteState.Ready) {
+        connect(target.address, quiet = target == last)
+      }
+    }
+  }
+
+  /** A phone that just paired with the watch usually wants the remote, so connect to it. */
+  private fun onBonded(device: BluetoothDevice) {
+    if (!uiVisible && !isPairing()) return
+    if (!registered) {
+      // The system pairing screen covered the app; connect once the remote is back.
+      newlyBonded = device.address
+      return
+    }
+    scope.launch {
+      // Give the phone a moment to open the link itself; most do right after pairing.
+      delay(BOND_CONNECT_DELAY_MS)
+      if (_state.value == RemoteState.Ready) connect(device.address)
     }
   }
 
@@ -226,7 +305,8 @@ class HidRemote(
 
   private fun releaseIfIdle() {
     val current = _state.value
-    if (uiVisible || current is RemoteState.Connected || current is RemoteState.Connecting) return
+    if (uiVisible || isPairing()) return
+    if (current is RemoteState.Connected || current is RemoteState.Connecting) return
     bindTimeout?.cancel()
     connectTimeout?.cancel()
     val device = hid
@@ -321,7 +401,9 @@ class HidRemote(
     if (host?.address != device.address) return
     connectTimeout?.cancel()
     _state.value = RemoteState.Ready
-    if (current is RemoteState.Connecting) _messages.tryEmit(R.string.error_connect)
+    if (current is RemoteState.Connecting) {
+      if (!quietConnect) _messages.tryEmit(R.string.error_connect)
+    }
     // A phone that bonded before the watch offered a keyboard accepts the link, then drops it at once.
     else if (SystemClock.elapsedRealtime() - connectedAtMs < QUICK_DROP_MS) {
       Log.w(TAG, "${device.address} dropped the link right away; it needs a fresh pairing")
@@ -335,6 +417,7 @@ class HidRemote(
     const val BIND_TIMEOUT_MS = 8_000L
     const val CONNECT_TIMEOUT_MS = 15_000L
     const val QUICK_DROP_MS = 2_000L
+    const val BOND_CONNECT_DELAY_MS = 2_000L
 
     // Shorter taps can reach the phone ~3 ms apart over Bluetooth, and camera apps ignore them.
     const val KEY_HOLD_MS = 150L
