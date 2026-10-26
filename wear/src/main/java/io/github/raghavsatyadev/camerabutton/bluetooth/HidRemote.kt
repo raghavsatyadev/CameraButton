@@ -171,6 +171,8 @@ class HidRemote(
       scope.launch {
         delay(CONNECT_TIMEOUT_MS)
         if (_state.value is RemoteState.Connecting) {
+          // Cancel the pending attempt so it doesn't block the next one.
+          runCatching { device.disconnect(target) }
           _state.value = RemoteState.Ready
           if (!quiet) _messages.tryEmit(R.string.error_connect)
         }
@@ -265,8 +267,12 @@ class HidRemote(
     if (_state.value !is RemoteState.Connecting) _state.value = RemoteState.Ready
     scope.launch {
       val bt = adapter ?: return@launch
-      val fresh = newlyBonded?.let { bt.getRemoteDevice(it) }
+      val fresh = newlyBonded
       newlyBonded = null
+      if (fresh != null && plugged == null) {
+        connectAfterBond(fresh)
+        return@launch
+      }
       // While pairing, don't keep the radio busy calling an old phone that may not be around.
       val last =
         if (isPairing()) null
@@ -274,7 +280,7 @@ class HidRemote(
           settings.current().lastHostAddress?.let { bt.getRemoteDevice(it) }?.takeIf {
             it.bondState == BluetoothDevice.BOND_BONDED
           }
-      val target = plugged ?: fresh ?: last
+      val target = plugged ?: last
       if (target != null && _state.value == RemoteState.Ready) {
         connect(target.address, quiet = target == last)
       }
@@ -289,10 +295,18 @@ class HidRemote(
       newlyBonded = device.address
       return
     }
+    connectAfterBond(device.address)
+  }
+
+  /**
+   * Right after pairing the phone looks up the watch's services and then opens the remote link
+   * itself. Calling it during that lookup stalls it, and the phone drops the pairing, so only
+   * step in if the phone hasn't connected by itself after a while.
+   */
+  private fun connectAfterBond(address: String) {
     scope.launch {
-      // Give the phone a moment to open the link itself; most do right after pairing.
       delay(BOND_CONNECT_DELAY_MS)
-      if (_state.value == RemoteState.Ready) connect(device.address)
+      if (_state.value == RemoteState.Ready) connect(address, quiet = true)
     }
   }
 
@@ -417,7 +431,7 @@ class HidRemote(
     const val BIND_TIMEOUT_MS = 8_000L
     const val CONNECT_TIMEOUT_MS = 15_000L
     const val QUICK_DROP_MS = 2_000L
-    const val BOND_CONNECT_DELAY_MS = 2_000L
+    const val BOND_CONNECT_DELAY_MS = 10_000L
 
     // Shorter taps can reach the phone ~3 ms apart over Bluetooth, and camera apps ignore them.
     const val KEY_HOLD_MS = 150L
