@@ -18,3 +18,5 @@ keystore.gradle
 local.properties
 release
 secret.properties
+# Agent scratch output (preview renders, traces)
+tmp/

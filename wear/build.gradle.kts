@@ -12,7 +12,7 @@ val secretProps =
 
 android {
   namespace = "io.github.raghavsatyadev.camerabutton"
-  compileSdk { version = release(37) }
+  compileSdk { version = release(37) { minorApiLevel = 1 } }
 
   defaultConfig {
     applicationId = "io.github.raghavsatyadev.camerabutton"
