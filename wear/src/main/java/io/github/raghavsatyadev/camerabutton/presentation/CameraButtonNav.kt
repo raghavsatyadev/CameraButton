@@ -9,7 +9,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.ConfirmationDialogDefaults
@@ -55,6 +57,11 @@ fun CameraButtonNav(viewModel: RemoteViewModel) {
         NavDisplay(
           backStack = backStack,
           onBack = { backStack.removeLastOrNull() },
+          entryDecorators =
+            listOf(
+              rememberSaveableStateHolderNavEntryDecorator(),
+              rememberViewModelStoreNavEntryDecorator(),
+            ),
           sceneStrategies = listOf(rememberSwipeDismissableSceneStrategy()),
           entryProvider =
             entryProvider {
